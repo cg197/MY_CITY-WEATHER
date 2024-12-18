@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced Weather App</title>
+    <link rel="stylesheet" href=".css">
+    <style>
+        /* CSS code unchanged */
+        /* Global Styles */
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%); /* Deep blue gradient */
+    color: #333; /* Darker text color */
+    background-size: cover;
+    background-position: center;
+}
+
+.navbar {
+    background-color: #142850; /* Darker navy blue */
+    padding: 15px;
+    text-align: center;
+}
+
+.navbar h1 {
+    color: #e3f2fd; /* Light blue color */
+    margin: 0;
+    display: inline;
+}
+
+.navbar a {
+    color: #e3f2fd; /* Light blue */
+    margin: 0 20px;
+    text-decoration: none;
+    font-weight: bold;
+    transition: color 0.3s;
+}
+
+.navbar a:hover {
+    color: #ffd700; /* Gold */
+}
+
+/* Main Container */
+.container {
+    max-width: 2000px;
+    margin: 20px auto;
+    text-align: center;
+    padding: 30px;
+    background-color: rgba(255, 255, 255, 0.95); /* Slightly more opaque */
+    border-radius: 10px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+    transition: transform 0.3s ease;
+}
+
+.container:hover {
+    transform: scale(1.03);
+}
+
+h2 {
+    font-size: 28px;
+    color: #1b4f72; /* Deep blue */
+    margin-bottom: 20px;
+}
+
+input[type="text"] {
+    width: calc(100% - 24px);
+    padding: 12px;
+    margin: 10px 0;
+    border: 1px solid #3a3b3c; /* Neutral grey */
+    border-radius: 5px;
+    transition: border-color 0.3s;
+}
+
+input[type="text"]:focus {
+    border-color: #142850; /* Darker navy */
+    outline: none;
+}
+
+button {
+    background-color: #1b4f72; /* Deep blue */
+    color: #fff;
+    border: none;
+    padding: 12px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background-color 0.3s;
+    margin: 10px 5px;
+}
+
+button:hover {
+    background-color: #145374; /* Slightly lighter blue */
+}
+
+/* Weather Information */
+.weather-info {
+    margin-top: 20px;
+}
+
+.weather-info img {
+    width: 100px;
+    margin: 10px 0;
+}
+
+.weather-info h3, .weather-info p {
+    margin: 10px 0;
+}
+
+#localTime {
+    font-weight: bold;
+    margin-top: 10px;
+    font-size: 16px;
+    color: #1e3c72; /* Deep blue */
+}
+
+/* 5-Day Forecast */
+#forecast {
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    margin-top: 20px;
+}
+
+.forecast-item {
+    background-color: rgba(255, 255, 255, 0.85);
+    padding: 10px;
+    border-radius: 5px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    text-align: center;
+    width: 70px;
+}
+
+.forecast-item img {
+    width: 50px;
+}
+
+/* Footer */
+footer {
+    text-align: center;
+    padding: 10px 0;
+    background-color: #142850; /* Dark navy blue */
+    color: #e3f2fd; /* Light blue */
+    width: 100%;
+    margin-top: auto;
+}
+
+/* Autocomplete Suggestions */
+.autocomplete-suggestions {
+    border: 1px solid #1b4f72; /* Deep blue */
+    border-radius: 5px;
+    max-height: 150px;
+    overflow-y: auto;
+    position: absolute;
+    z-index: 1000;
+    background: #fff;
+    width: calc(100% - 24px);
+    margin: 0 12px;
+    display: none;
+}
+
+.suggestion {
+    padding: 10px;
+    cursor: pointer;
+}
+
+.suggestion:hover {
+    background-color: #d5e6f3; /* Light blue background */
+}
+
+    </style>
+</head>
+<body>
+    <div class="navbar">
+     <a href="https://www.weather.com" target="_blank">Weather.com</a>
+<a href="https://www.noaa.gov" target="_blank">NOAA</a>
+<a href="https://earth.nullschool.net" target="_blank">Wind Patterns</a>
+<a href="https://icuzambia.net" target="_blank">ICUZAMBIA</a>
+     <h1>Weather APPP </h1>
+
+    </div>
+    
+    <div class="container">
+        <h2 style="margin-bottom: 20px;">Weather Information</h2>
+        <input type="text" id="locationInput" placeholder="Enter a city" autocomplete="off">
+        <div id="suggestions" class="autocomplete-suggestions"></div>
+        <button id="searchButton">Search</button>
+        <button id="currentLocationButton">Use Current Location</button>
+        <div class="weather-info">
+            <img id="weatherIcon" src="" alt="Weather Icon" style="display: none;">
+            <h3 id="location"></h3>
+            <p id="temperature"></p>
+            <p id="description"></p>
+            <p id="localTime"></p>
+        </div>
+        <h3>5-Day Forecast</h3>
+        <div id="forecast"></div>
+    </div>
+
+    <footer>
+        <p>&copy; 2024 Advanced Weather App. All Rights Reserved.</p>
+    </footer>
+
+    <script>
+        const apiKey = 'afa656862cd10f4f7638d0cfbda9b971';
+        const apiUrl = 'https://api.openweathermap.org/data/2.5/weather';
+        const forecastUrl = 'https://api.openweathermap.org/data/2.5/forecast';
+        const suggestionsContainer = document.getElementById('suggestions');
+        const locationInput = document.getElementById('locationInput');
+        const searchButton = document.getElementById('searchButton');
+        const currentLocationButton = document.getElementById('currentLocationButton');
+        const locationElement = document.getElementById('location');
+        const temperatureElement = document.getElementById('temperature');
+        const descriptionElement = document.getElementById('description');
+        const weatherIcon = document.getElementById('weatherIcon');
+        const forecastContainer = document.getElementById('forecast');
+        const body = document.body;
+
+        // Fetch suggestions for city search
+        locationInput.addEventListener('input', () => {
+            const query = locationInput.value;
+            if (query) {
+                fetchSuggestions(query);
+            } else {
+                suggestionsContainer.style.display = 'none';
+            }
+        });
+
+        // Event listeners
+        suggestionsContainer.addEventListener('click', (e) => {
+            if (e.target.classList.contains('suggestion')) {
+                locationInput.value = e.target.textContent;
+                suggestionsContainer.style.display = 'none';
+            }
+        });
+
+        searchButton.addEventListener('click', () => {
+            const location = locationInput.value;
+            if (location) {
+                fetchWeather(location);
+                fetchForecast(location);
+            }
+        });
+
+        currentLocationButton.addEventListener('click', () => {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(position => {
+                    const { latitude, longitude } = position.coords;
+                    fetchWeatherByCoords(latitude, longitude);
+                    fetchForecastByCoords(latitude, longitude);
+                }, () => {
+                    alert('Unable to retrieve your location.');
+                });
+            } else {
+                alert('Geolocation is not supported by this browser.');
+            }
+        });
+
+        // Fetch weather data
+        function fetchWeather(location) {
+            const url = `${apiUrl}?q=${location}&appid=${apiKey}&units=metric`;
+            fetch(url)
+                .then(response => response.json())
+                .then(data => {
+                    displayWeather(data);
+                    fetchLocalTime(data.coord.lat, data.coord.lon);
+                })
+                .catch(error => console.error('Error fetching weather data:', error));
+        }
+
+        // Fetch weather data by coordinates
+        function fetchWeatherByCoords(lat, lon) {
+            const url = `${apiUrl}?lat=${lat}&lon=${lon}&appid=${apiKey}&units=metric`;
+            fetch(url)
+                .then(response => response.json())
+                .then(data => {
+                    displayWeather(data);
+                    fetchLocalTime(lat, lon);
+                })
+                .catch(error => console.error('Error fetching weather data:', error));
+        }
+
+        // Display weather data
+        function displayWeather(data) {
+            locationElement.textContent = data.name;
+            temperatureElement.textContent = `${Math.round(data.main.temp)}°C`;
+            descriptionElement.textContent = data.weather[0].description;
+            const iconCode = data.weather[0].icon;
+            weatherIcon.src = `https://openweathermap.org/img/wn/${iconCode}@2x.png`;
+            weatherIcon.style.display = 'block';
+            changeBackground(data.weather[0].main.toLowerCase());
+        }
+
+        // Change background based on weather
+        function changeBackground(weather) {
+            const backgrounds = {
+                clear: 'url("clear.jpg")',
+                clouds: 'url("cloudy.jpeg")',
+                rain: 'url("rain.jpg")',
+                snow: 'url("snow.jpg")',
+                thunderstorm: 'url("thunderstorm.jpg")',
+                mist: 'url("mist.jpg")',
+                drizzle: 'url("drizzle.jpg")'
+            };
+            body.style.backgroundImage = backgrounds[weather] || 'url("rain.jpg")';
+            body.style.backgroundSize = 'cover';
+            body.style.backgroundPosition = 'center';
+        }
+
+        // Fetch 5-day forecast
+        function fetchForecast(location) {
+            const url = `${forecastUrl}?q=${location}&appid=${apiKey}&units=metric`;
+            fetch(url)
+                .then(response => response.json())
+                .then(data => displayForecast(data))
+                .catch(error => console.error('Error fetching forecast data:', error));
+        }
+
+        function fetchForecastByCoords(lat, lon) {
+            const url = `${forecastUrl}?lat=${lat}&lon=${lon}&appid=${apiKey}&units=metric`;
+            fetch(url)
+                .then(response => response.json())
+                .then(data => displayForecast(data))
+                .catch(error => console.error('Error fetching forecast data:', error));
+        }
+
+        // Display 5-day forecast
+        function displayForecast(data) {
+            forecastContainer.innerHTML = '';
+            for (let i = 0; i < data.list.length; i += 8) {
+                const forecast = data.list[i];
+                const date = new Date(forecast.dt_txt).toLocaleDateString();
+                const temp = `${Math.round(forecast.main.temp)}°C`;
+                const desc = forecast.weather[0].description;
+                const icon = forecast.weather[0].icon;
+
+                forecastContainer.innerHTML += `
+                    <div class="forecast-item">
+                        <p>${date}</p>
+                        <img src="https://openweathermap.org/img/wn/${icon}@2x.png" alt="${desc}">
+                        <p>${temp}</p>
+                        <p>${desc}</p>
+                    </div>`;
+            }
+        }
+
+        // Fetch local time using lat/lon
+        function fetchLocalTime(lat, lon) {
+            const timezoneUrl = `https://api.ipgeolocation.io/timezone?apiKey=your_timezone_api_key&lat=${lat}&long=${lon}`;
+            fetch(timezoneUrl)
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('localTime').textContent = `Local time: ${data.time_24}`;
+                })
+                .catch(error => console.error('Error fetching time data:', error));
+        }
+    </script>
+</body>
+</html>
